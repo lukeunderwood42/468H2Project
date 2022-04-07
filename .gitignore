@@ -19,3 +19,4 @@
 /h2web/
 .pmd
 docs/html/testOutput.html
+trace.db/h2datasource.trace.db
