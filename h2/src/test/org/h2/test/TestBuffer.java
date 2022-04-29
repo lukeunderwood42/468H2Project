@@ -20,9 +20,9 @@ public class TestBuffer extends TestBase {
     ArrayList<Integer> expected = new ArrayList<>(Arrays.asList(5, 4, 3));
     ArrayList<Integer> input =  new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5));
     ArrayList<Integer> actual =  new ArrayList<>();
-
+    Integer bufferSize = 3; // for now
     //replace with actual fifo logic
-    //FifoLogic(actual, input);
+    FifoLogic(actual, input, bufferSize);
     assertEquals(expected, actual);
   }
 
@@ -83,5 +83,18 @@ public class TestBuffer extends TestBase {
         && Double.compare(flag, c.flag) == 0;
     }
 
+  }
+
+  // running thru fifo logic 
+  private static void FifoLogic(ArrayList<Integer> actual, ArrayList<Integer> input, Integer bufferSize) {
+    // loop thru the input array
+    for (Integer i : input) {
+      // exceeded buffer size so remove the first
+      if(actual.size() >= bufferSize) {
+        actual.remove(0);
+      }
+      // add the next item to the actual list
+      actual.add(i);
+    }
   }
 }
