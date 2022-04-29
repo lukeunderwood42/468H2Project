@@ -1,19 +1,22 @@
 package org.h2.test;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
 public class TestBuffer extends TestBase {
   public static void main(String... a) throws Exception {
     TestBase.createCaller().init().testFromMain();
   }
 
+
+
+
+
   @Override
   public void test() throws Exception {
-   testFIFO();
-   testLRU();
-   testClock();
-   testLFU();
+   //testFIFO();
+   testLRU(3);
+   //testClock();
+   //testLFU();
   }
 
   private void testFIFO(){
@@ -26,10 +29,38 @@ public class TestBuffer extends TestBase {
     assertEquals(expected, actual);
   }
 
-  private void testLRU(){
-    ArrayList<Integer> expected = new ArrayList<>(Arrays.asList(3, 2, 5));
-    ArrayList<Integer> input =  new ArrayList<>(Arrays.asList(3, 5, 2, 3));
-    ArrayList<Integer> actual =  new ArrayList<>();
+  private void testLRU(int capacity) {
+    ArrayList<Integer> expected = new ArrayList<>(Arrays.asList(7, 2, 5));
+    ArrayList<Integer> input = new ArrayList<>(Arrays.asList(3, 5, 2, 7));
+    ArrayList<Integer> actual = new ArrayList<>();
+
+    Deque<Integer> doublyQueue;
+    HashSet<Integer> hashSet;
+    int CACHE_SIZE;
+
+    doublyQueue = new LinkedList<>();
+    hashSet = new HashSet<>();
+    CACHE_SIZE = capacity;
+
+    for (int i = 0; i < input.size(); i++) {
+
+      int page = input.get(i);
+
+      if (!hashSet.contains(page)){
+        if(doublyQueue.size() == CACHE_SIZE){
+          int last = doublyQueue.removeLast();
+          hashSet.remove(last);
+        }
+    }else{
+        doublyQueue.remove(page);
+      }
+      doublyQueue.push(page);
+      hashSet.add(page);
+  }
+
+    actual.addAll(doublyQueue);
+
+
     //replace with actual LRU logic
     //LRULogic(actual, input)
     assertEquals(expected, actual);
