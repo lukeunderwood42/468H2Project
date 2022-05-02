@@ -71,8 +71,7 @@ public class TestBuffer extends TestBase {
       new Item(4, 1), new Item(5, 0)));
     ArrayList<Integer> input =  new ArrayList<>(Arrays.asList(3, 4, 5, 2, 4));
     ArrayList<Item> actual =  new ArrayList<>();
-    //replace with actual clock logic
-    //clockLogic(actual, input)
+    clockLogic(actual, input, 3);
     assertEquals(expected, actual);
   }
 
@@ -126,6 +125,43 @@ public class TestBuffer extends TestBase {
       }
       // add the next item to the actual list
       actual.add(i);
+    }
+  }
+
+  private void clockLogic(ArrayList<Item> actual, ArrayList<Integer> input, int bufferSize){
+    int clockPosition = 0;
+    boolean inserted = false;
+    boolean alreadyIn = false;
+    for(Integer i: input){
+      Item toBeAdded = new Item(i, 1);
+
+      for(Item item: actual) {
+        if(item.value == toBeAdded.value){
+          item.flag = 1;
+          alreadyIn = true;
+        }
+      }
+
+      if(actual.size() < bufferSize && !alreadyIn){
+        actual.add(toBeAdded);
+      }
+
+      else if (!alreadyIn){
+        while(!inserted) {
+
+          if(actual.get(clockPosition).flag == 0){
+            actual.set(clockPosition, toBeAdded);
+            inserted = true;
+          }
+          else{
+            actual.get(clockPosition).flag = 0;
+            clockPosition ++;
+            if(clockPosition == 3){
+              clockPosition = 0;
+            }
+          }
+        }
+      }
     }
   }
 }
