@@ -32,6 +32,8 @@ public abstract class CacheObject implements Comparable<CacheObject> {
     private int pos;
     private boolean changed;
 
+    public int flag = 1;
+
     /**
      * Check if the object can be removed from the cache.
      * For example pinned objects can not be removed.

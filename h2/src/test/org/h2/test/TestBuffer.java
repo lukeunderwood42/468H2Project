@@ -7,20 +7,16 @@ public class TestBuffer extends TestBase {
     TestBase.createCaller().init().testFromMain();
   }
 
-
-
-
-
   @Override
   public void test() throws Exception {
-   //testFIFO();
+   testFIFO();
    testLRU(3);
-   //testClock();
-   //testLFU();
+   testClock();
+   testLFU();
   }
 
   private void testFIFO(){
-    ArrayList<Integer> expected = new ArrayList<>(Arrays.asList(5, 4, 3));
+    ArrayList<Integer> expected = new ArrayList<>(Arrays.asList(3, 4, 5));
     ArrayList<Integer> input =  new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5));
     ArrayList<Integer> actual =  new ArrayList<>();
     Integer bufferSize = 3; // for now
@@ -30,8 +26,8 @@ public class TestBuffer extends TestBase {
   }
 
   private void testLRU(int capacity) {
-    ArrayList<Integer> expected = new ArrayList<>(Arrays.asList(7, 2, 5));
-    ArrayList<Integer> input = new ArrayList<>(Arrays.asList(3, 5, 2, 7));
+    ArrayList<Integer> expected = new ArrayList<>(Arrays.asList(1,2,3));
+    ArrayList<Integer> input = new ArrayList<>(Arrays.asList(1,2,3,5,2,6, 3,2,1));
     ArrayList<Integer> actual = new ArrayList<>();
 
     Deque<Integer> doublyQueue;
@@ -51,7 +47,7 @@ public class TestBuffer extends TestBase {
           int last = doublyQueue.removeLast();
           hashSet.remove(last);
         }
-    }else{
+    } else{
         doublyQueue.remove(page);
       }
       doublyQueue.push(page);
@@ -76,12 +72,13 @@ public class TestBuffer extends TestBase {
   }
 
   private void testLFU(){
-    ArrayList<Item> expected = new ArrayList<>(Arrays.asList(new Item(1, 4), new Item(2, 4),
-      new Item(4, 1)));
+    ArrayList<Item> expected = new ArrayList<>(Arrays.asList(new Item(4, 1), new Item(2, 4),
+      new Item(1, 4)
+      ));
     ArrayList<Integer> input =  new ArrayList<>(Arrays.asList(1, 2, 3, 1, 1, 2, 2, 3, 4));
     ArrayList<Item> actual =  new ArrayList<>();
     //replace with actual clock logic
-    //LFULogic(actual, input)
+    LFUlogic(actual, input, 3);
     assertEquals(expected, actual);
   }
 
@@ -92,6 +89,10 @@ public class TestBuffer extends TestBase {
     public Item(int valueIn, int flagIn){
       flag = flagIn;
       value = valueIn;
+    }
+
+    public int getFlag() {
+      return flag;
     }
 
     @Override
@@ -164,4 +165,28 @@ public class TestBuffer extends TestBase {
       }
     }
   }
+
+  private void LFUlogic(ArrayList<Item> actual, ArrayList<Integer> input, Integer bufferSize) {
+    for (Integer val : input) {
+      actual.sort(Comparator.comparing(Item::getFlag));
+      boolean inserted = false;
+      for(Item i: actual){
+        if(i.value == val){
+          i.flag *= 2;
+          inserted = true;
+        }
+      }
+      if (actual.size() < bufferSize && !inserted) {
+        actual.add(new Item(val, 1));
+
+        inserted = true;
+      }
+      if (!inserted){
+        actual.remove(0);
+        actual.add( new Item(val, 1));
+      }
+    }
+    actual.sort(Comparator.comparing(Item::getFlag));
+  }
+
 }
