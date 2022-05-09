@@ -52,7 +52,7 @@ public class CacheClock implements Cache {
     /**
      * Tracks the hand location for clock algorithm
      */
-    private int hand;
+    private CacheObject hand = head;
 
     CacheClock(CacheWriter writer, int maxMemoryKb, boolean fifo) {
         this.writer = writer;
@@ -118,26 +118,27 @@ public class CacheClock implements Cache {
             int pos = rec.getPos();
             CacheObject old = find(pos);
             if (old != null) {
-                throw DbException.getInternalError("try to add a record twice at pos " + pos);
+                old.flag = 1; //maybe
+                return;
             }
         }
-        int index = rec.getPos() & mask;
-        rec.cacheChained = values[index];
-        values[index] = rec;
-        recordCount++;
-        memory += rec.getMemory();
-        addToFront(rec); //TODO: need to update method of inserting
-        removeOldIfRequired(); //TODO: need to update method of removal
+        //int index = rec.getPos() & mask;
+        //rec.cacheChained = values[index]; //TODO figure out what's happening here
+        //values[index] = rec;
+
+        removeOldIfRequired(rec.getMemory()); //TODO: need to update method of removal
+        insertAtHand(rec); //TODO: need to update method of inserting
+
     }
 
     @Override
-    public CacheObject update(int pos, CacheObject rec) {
-        CacheObject old = find(pos);
+    public CacheObject update(int key, CacheObject rec) {
+        CacheObject old = find(key);
         if (old == null) {
             put(rec);
         } else {
             if (old != rec) {
-                throw DbException.getInternalError("old!=record pos:" + pos + " old:" + old + " new:" + rec);
+                throw DbException.getInternalError("old!=record pos:" + key + " old:" + old + " new:" + rec);
             }
             if (!fifo) {
                 removeFromLinkedList(rec);
@@ -147,106 +148,76 @@ public class CacheClock implements Cache {
         return old;
     }
 
-    private void removeOldIfRequired() {
+    private void removeOldIfRequired(long objectMemSize) {
         // a small method, to allow inlining
         if (memory >= maxMemory) {
-            removeOld();
+            removeOld(objectMemSize);
         }
     }
 
-    private void removeOld() {
+    //TODO write records back to with writer if changed
+    private void removeOld(long objectMemSize) {
         int i = 0;
         ArrayList<CacheObject> changed = new ArrayList<>();
         long mem = memory;
         int rc = recordCount;
         boolean flushed = false;
-        CacheObject next = head.cacheNext;
-        while (true) {
-            if (rc <= Constants.CACHE_MIN_RECORDS) {
+        CacheObject next = null;
+        int size = 0;
+        int count = 0;
+
+
+        while(maxMemory - objectMemSize < mem){
+            if(count == rc){
+                writer.getTrace()
+                  .info("cannot remove records, cache size too small? records:" +
+                    recordCount + " memory:" + memory);
                 break;
             }
-            if (changed.isEmpty()) {
-                if (mem <= maxMemory) {
-                    break;
-                }
-            } else {
-                if (mem * 4 <= maxMemory * 3) {
-                    break;
-                }
+            if(hand.flag == 0 && hand.canRemove()){
+                size = hand.getMemory();
+                next = hand.cacheNext;
+                changed.add(hand);
+                hand = next;
+                rc -= 1;
+                mem -= size;
+                count -= 1;
             }
-            CacheObject check = next;
-            next = check.cacheNext;
-            i++;
-            if (i >= recordCount) {
-                if (!flushed) {
-                    writer.flushLog();
-                    flushed = true;
-                    i = 0;
-                } else {
-                    // can't remove any record, because the records can not be
-                    // removed hopefully this does not happen frequently, but it
-                    // can happen
-                    writer.getTrace()
-                            .info("cannot remove records, cache size too small? records:" +
-                                    recordCount + " memory:" + memory);
-                    break;
-                }
+            else {
+                hand.flag = 0;
+                hand = next;
             }
-            if (check == head) {
-                throw DbException.getInternalError("try to remove head");
-            }
-            // we are not allowed to remove it if the log is not yet written
-            // (because we need to log before writing the data)
-            // also, can't write it if the record is pinned
-            if (!check.canRemove()) {
-                removeFromLinkedList(check);
-                addToFront(check);
-                continue;
-            }
-            rc--;
-            mem -= check.getMemory();
-            if (check.isChanged()) {
-                changed.add(check);
-            } else {
-                remove(check.getPos());
-            }
-        }
-        if (!changed.isEmpty()) {
-            if (!flushed) {
-                writer.flushLog();
-            }
-            Collections.sort(changed);
-            long max = maxMemory;
-            int size = changed.size();
-            try {
-                // temporary disable size checking,
-                // to avoid stack overflow
-                maxMemory = Long.MAX_VALUE;
-                for (i = 0; i < size; i++) {
-                    CacheObject rec = changed.get(i);
-                    writer.writeBack(rec);
-                }
-            } finally {
-                maxMemory = max;
-            }
-            for (i = 0; i < size; i++) {
+            count += 1;
+            while (!changed.isEmpty()){
                 CacheObject rec = changed.get(i);
                 remove(rec.getPos());
                 if (rec.cacheNext != null) {
                     throw DbException.getInternalError();
                 }
             }
+
         }
+
     }
 
     private void addToFront(CacheObject rec) {
         if (rec == head) {
             throw DbException.getInternalError("try to move head");
         }
+        //TODO insert object at clock hand location
         rec.cacheNext = head;
         rec.cachePrevious = head.cachePrevious;
         rec.cachePrevious.cacheNext = rec;
         head.cachePrevious = rec;
+    }
+
+    private void insertAtHand(CacheObject rec){
+        rec.cachePrevious = hand.cachePrevious;
+        rec.cachePrevious.cacheNext = rec;
+        rec.cacheNext = hand;
+        hand.cachePrevious = rec;
+        recordCount++;
+        memory += rec.getMemory();
     }
 
     private void removeFromLinkedList(CacheObject rec) {
@@ -260,13 +231,13 @@ public class CacheClock implements Cache {
     }
 
     @Override
-    public boolean remove(int pos) {
-        int index = pos & mask;
+    public boolean remove(int key) {
+        int index = key & mask;
         CacheObject rec = values[index];
         if (rec == null) {
             return false;
         }
-        if (rec.getPos() == pos) {
+        if (rec.getPos() == key) {
             values[index] = rec.cacheChained;
         } else {
             CacheObject last;
@@ -276,7 +247,7 @@ public class CacheClock implements Cache {
                 if (rec == null) {
                     return false;
                 }
-            } while (rec.getPos() != pos);
+            } while (rec.getPos() != key);
             last.cacheChained = rec.cacheChained;
         }
         recordCount--;
@@ -284,7 +255,7 @@ public class CacheClock implements Cache {
         removeFromLinkedList(rec);
         if (SysProperties.CHECK) {
             rec.cacheChained = null;
-            CacheObject o = find(pos);
+            CacheObject o = find(key);
             if (o != null) {
                 throw DbException.getInternalError("not removed: " + o);
             }
@@ -293,24 +264,20 @@ public class CacheClock implements Cache {
     }
 
     @Override
-    public CacheObject find(int pos) {
-        CacheObject rec = values[pos & mask];
-        while (rec != null && rec.getPos() != pos) {
+    public CacheObject find(int key) {
+        CacheObject rec = values[key & mask];
+        while (rec != null && rec.getPos() != key) {
             rec = rec.cacheChained;
         }
         return rec;
     }
 
-    //TODO: update this method for clock use
+
     @Override
-    public CacheObject get(int pos) {
-        CacheObject rec = find(pos);
+    public CacheObject get(int key) {
+        CacheObject rec = find(key);
         if (rec != null) {
-            if (!fifo) {
-                removeFromLinkedList(rec);
-                addToFront(rec);
-            }
-            //rec.flag = 1;
+            rec.flag = 1;
         }
         return rec;
     }
@@ -334,10 +301,11 @@ public class CacheClock implements Cache {
     @Override
     public void setMaxMemory(int maxKb) {
         long newSize = maxKb * 1024L / 4;
+        long temp = maxMemory - newSize;
         maxMemory = newSize < 0 ? 0 : newSize;
         // can not resize, otherwise existing records are lost
         // resize(maxSize);
-        removeOldIfRequired();
+        removeOldIfRequired(temp);
     }
 
     @Override
