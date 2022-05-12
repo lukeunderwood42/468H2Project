@@ -131,6 +131,7 @@ public class CacheClock implements Cache {
 
     }
 
+    // check if CacheObject record is in memory, if it is not, put it in. If it is, throw an error?
     @Override
     public CacheObject update(int key, CacheObject rec) {
         CacheObject old = find(key);
@@ -140,10 +141,12 @@ public class CacheClock implements Cache {
             if (old != rec) {
                 throw DbException.getInternalError("old!=record pos:" + key + " old:" + old + " new:" + rec);
             }
-            if (!fifo) {
-                removeFromLinkedList(rec);
-                addToFront(rec);
-            }
+
+            // if (!fifo) {
+            //     removeFromLinkedList(rec);
+            //     addToFront(rec);
+            // }
+
         }
         return old;
     }
@@ -178,38 +181,42 @@ public class CacheClock implements Cache {
                 size = hand.getMemory();
                 next = hand.cacheNext;
                 changed.add(hand);
-                hand = next;
                 rc -= 1;
                 mem -= size;
                 count -= 1;
             }
             else {
                 hand.flag = 0;
-                hand = next;
             }
+
+            hand = next;
             count += 1;
-            while (!changed.isEmpty()){
+
+        }
+
+        long max = maxMemory;
+        int size = changed.size();
+        try {
+            // temporary disable size checking,
+            // to avoid stack overflow
+            maxMemory = Long.MAX_VALUE;
+            for (i = 0; i < size; i++) {
                 CacheObject rec = changed.get(i);
-                remove(rec.getPos());
-                if (rec.cacheNext != null) {
-                    throw DbException.getInternalError();
-                }
+                writer.writeBack(rec);
             }
-
+        } finally {
+            maxMemory = max;
         }
 
+        while (!changed.isEmpty()){
+            CacheObject rec = changed.get(i);
+            remove(rec.getPos()); // Note: getPos() gets key not position
+            if (rec.cacheNext != null) {
+                throw DbException.getInternalError();
+            }
+        }
     }
 
-    private void addToFront(CacheObject rec) {
-        if (rec == head) {
-            throw DbException.getInternalError("try to move head");
-        }
-        //TODO insert object at clock hand location
-        rec.cacheNext = head;
-        rec.cachePrevious = head.cachePrevious;
-        rec.cachePrevious.cacheNext = rec;
-        head.cachePrevious = rec;
-    }
 
     private void insertAtHand(CacheObject rec){
         rec.cachePrevious = hand.cachePrevious;
