@@ -1,8 +1,41 @@
 package org.h2.test;
 
+import org.h2.test.unit.TestCache;
+import org.h2.util.CacheClock;
+import org.h2.util.CacheObject;
+
 import java.util.*;
 
 public class TestBuffer extends TestBase {
+
+  static class Obj extends CacheObject {
+
+    Obj(int pos) {
+      setPos(pos);
+    }
+
+    @Override
+    public int getMemory() {
+      return 1024;
+    }
+
+    @Override
+    public boolean canRemove() {
+      return true;
+    }
+
+    @Override
+    public boolean isChanged() {
+      return true;
+    }
+
+    @Override
+    public String toString() {
+      return "[" + getPos() + "]";
+    }
+
+  }
+
   public static void main(String... a) throws Exception {
     TestBase.createCaller().init().testFromMain();
   }
@@ -69,6 +102,12 @@ public class TestBuffer extends TestBase {
     ArrayList<Item> actual =  new ArrayList<>();
     clockLogic(actual, input, 3);
     assertEquals(expected, actual);
+
+    TestCache test = new TestCache();
+    CacheClock cache = new CacheClock(test, 500, false);
+    Obj object = new Obj(1);
+    cache.put(object);
+    assertEquals(object, cache.find(1));
   }
 
   private void testLFU(){

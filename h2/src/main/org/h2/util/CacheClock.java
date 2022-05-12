@@ -54,7 +54,7 @@ public class CacheClock implements Cache {
      */
     private CacheObject hand = head;
 
-    CacheClock(CacheWriter writer, int maxMemoryKb, boolean fifo) {
+    public CacheClock(CacheWriter writer, int maxMemoryKb, boolean fifo) {
         this.writer = writer;
         this.fifo = fifo;
         this.setMaxMemory(maxMemoryKb);
@@ -122,9 +122,9 @@ public class CacheClock implements Cache {
                 return;
             }
         }
-        //int index = rec.getPos() & mask;
-        //rec.cacheChained = values[index]; //TODO figure out what's happening here
-        //values[index] = rec;
+        int index = rec.getPos() & mask;
+        rec.cacheChained = values[index];
+        values[index] = rec;
 
         removeOldIfRequired(rec.getMemory()); //TODO: need to update method of removal
         insertAtHand(rec); //TODO: need to update method of inserting
@@ -166,7 +166,7 @@ public class CacheClock implements Cache {
         int rc = recordCount;
         boolean flushed = false;
         CacheObject next = null;
-        int size = 0;
+        int memSize = 0;
         int count = 0;
 
 
@@ -178,11 +178,11 @@ public class CacheClock implements Cache {
                 break;
             }
             if(hand.flag == 0 && hand.canRemove()){
-                size = hand.getMemory();
+                memSize = hand.getMemory();
                 next = hand.cacheNext;
                 changed.add(hand);
                 rc -= 1;
-                mem -= size;
+                mem -= memSize;
                 count -= 1;
             }
             else {
