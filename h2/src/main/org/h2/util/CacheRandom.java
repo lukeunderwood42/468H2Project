@@ -5,17 +5,19 @@
  */
 package org.h2.util;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Map;
 import org.h2.engine.Constants;
 import org.h2.engine.SysProperties;
 import org.h2.message.DbException;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Random;
+
 /**
  * A cache implementation based on the last recently used (LRU) algorithm.
  */
-public class CacheLRU implements Cache {
+public class CacheRandom implements Cache {
 
     static final String TYPE_NAME = "LRU";
 
@@ -47,7 +49,7 @@ public class CacheLRU implements Cache {
      */
     private long memory;
 
-    CacheLRU(CacheWriter writer, int maxMemoryKb, boolean fifo) {
+    CacheRandom(CacheWriter writer, int maxMemoryKb, boolean fifo) {
         this.writer = writer;
         this.fifo = fifo;
         this.setMaxMemory(maxMemoryKb);
@@ -82,8 +84,8 @@ public class CacheLRU implements Cache {
             cacheType = cacheType.substring("SOFT_".length());
         }
         Cache cache;
-        if (CacheLRU.TYPE_NAME.equals(cacheType)) {
-            cache = new CacheLRU(writer, cacheSize, false);
+        if (CacheRandom.TYPE_NAME.equals(cacheType)) {
+            cache = new CacheRandom(writer, cacheSize, false);
         } else if (CacheTQ.TYPE_NAME.equals(cacheType)) {
             cache = new CacheTQ(writer, cacheSize);
         } else {
@@ -148,6 +150,7 @@ public class CacheLRU implements Cache {
     }
 
     private void removeOld() {
+        ArrayList<Integer> used = new ArrayList<>();
         int i = 0;
         ArrayList<CacheObject> changed = new ArrayList<>();
         long mem = memory;
@@ -167,9 +170,15 @@ public class CacheLRU implements Cache {
                     break;
                 }
             }
-            //TODO change this to randomly assign next
-            CacheObject check = next;
-            next = check.cacheNext;
+            int size = values.length;
+            Random random = new Random();
+            int selected = random.nextInt(size);
+            while(used.contains(selected)){
+                selected = random.nextInt(size);
+            }
+            used.add(selected);
+            CacheObject check = values[selected];
+            //next = check.cacheNext;
             i++;
             if (i >= recordCount) {
                 if (!flushed) {

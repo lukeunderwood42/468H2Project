@@ -171,13 +171,17 @@ public class CacheClock implements Cache {
 
 
         while(maxMemory - objectMemSize < mem){
-            if(count == rc){
+            //bad condition. need
+            if(count == (rc + 1) * 2){
                 writer.getTrace()
                   .info("cannot remove records, cache size too small? records:" +
                     recordCount + " memory:" + memory);
                 break;
             }
-            if(hand.flag == 0 && hand.canRemove()){
+            if(hand == head){
+                next = hand.cacheNext;
+            }
+            else if(hand.flag == 0 && hand.canRemove()){
                 memSize = hand.getMemory();
                 next = hand.cacheNext;
                 changed.add(hand);
@@ -208,7 +212,7 @@ public class CacheClock implements Cache {
             maxMemory = max;
         }
 
-        while (!changed.isEmpty()){
+        for (i = 0; i < changed.size(); i++){
             CacheObject rec = changed.get(i);
             remove(rec.getPos()); // Note: getPos() gets key not position
             if (rec.cacheNext != null) {
@@ -219,10 +223,10 @@ public class CacheClock implements Cache {
 
 
     private void insertAtHand(CacheObject rec){
-        rec.cachePrevious = hand.cachePrevious;
-        rec.cachePrevious.cacheNext = rec;
-        rec.cacheNext = hand;
-        hand.cachePrevious = rec;
+        rec.cacheNext= hand.cacheNext;
+        rec.cacheNext.cachePrevious = rec;
+        rec.cachePrevious = hand;
+        hand.cacheNext = rec;
         recordCount++;
         memory += rec.getMemory();
     }
