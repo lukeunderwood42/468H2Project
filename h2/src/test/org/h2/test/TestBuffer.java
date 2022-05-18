@@ -104,7 +104,7 @@ public class TestBuffer extends TestBase {
     assertEquals(expected, actual);
 
     TestCache test = new TestCache();
-    CacheClock cache = new CacheClock(test, 10, false);
+    CacheClock cache = new CacheClock(test, 15, false);
     Obj object = new Obj(1);
     Obj object2 = new Obj(3);
     Obj object3 = new Obj(5);
@@ -118,14 +118,15 @@ public class TestBuffer extends TestBase {
     cache.put(object);
     cache.put(object2);
     cache.put(object3);
-//    cache.put(object4);
-//    cache.put(object5);
+    cache.put(object4);
+    cache.put(object5);
 //    cache.put(object6);
 //    cache.put(object7);
 //    cache.put(object8);
 //    cache.put(object9);
 //    cache.put(object10);
-    assertEquals(object, cache.find(1));
+
+    assertEquals(object3, cache.find(5));
     assertEquals(object2, cache.find(3));
   }
 

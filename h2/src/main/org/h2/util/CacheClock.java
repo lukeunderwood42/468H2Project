@@ -126,8 +126,8 @@ public class CacheClock implements Cache {
         rec.cacheChained = values[index];
         values[index] = rec;
 
-        removeOldIfRequired(rec.getMemory()); //TODO: need to update method of removal
-        insertAtHand(rec); //TODO: need to update method of inserting
+        removeOldIfRequired(rec.getMemory());
+        insertAtHand(rec);
 
     }
 
@@ -223,12 +223,28 @@ public class CacheClock implements Cache {
 
 
     private void insertAtHand(CacheObject rec){
-        rec.cacheNext= hand.cacheNext;
-        rec.cacheNext.cachePrevious = rec;
-        rec.cachePrevious = hand;
-        hand.cacheNext = rec;
-        recordCount++;
+//        rec.cacheNext= hand.cacheNext;
+//        rec.cacheNext.cachePrevious = rec;
+//        rec.cachePrevious = hand;
+//        hand.cacheNext = rec;
+//        recordCount++;
+//        memory += rec.getMemory();
+        if(values.length == 0){
+            head.cacheNext = rec;
+            head.cachePrevious = rec;
+            rec.cacheNext = head;
+            rec.cachePrevious = head;
+        }
+        else {
+            head.cachePrevious.cacheNext = rec;
+            rec.cachePrevious = head.cachePrevious;
+            head.cachePrevious = rec;
+            rec.cacheNext = head;
+        }
+        recordCount ++;
         memory += rec.getMemory();
+
+
     }
 
     private void removeFromLinkedList(CacheObject rec) {

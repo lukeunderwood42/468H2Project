@@ -16,6 +16,7 @@ import java.util.Map;
 /**
  * A cache implementation based on the last frequently used (LFU) algorithm.
  */
+
 public class CacheLFU implements Cache {
 
 // TODO: Need to think about what we do when we multiple 1000...0000 * 2?
@@ -134,7 +135,7 @@ public class CacheLFU implements Cache {
         values[index] = rec;
 
         removeOldIfRequired(rec.getMemory());
-        insertAtHand(rec);
+        //insertAtHand(rec);
 
     }
 
@@ -184,20 +185,20 @@ public class CacheLFU implements Cache {
                     recordCount + " memory:" + memory);
                 break;
             }
-            if(hand.flag == 0 && hand.canRemove()){
-                memSize = hand.getMemory();
-                next = hand.cacheNext;
-                changed.add(hand);
-                rc -= 1;
-                mem -= memSize;
-                count -= 1;
-            }
-            else {
-                hand.flag = 0;
-            }
-
-            hand = next;
-            count += 1;
+//            if(hand.flag == 0 && hand.canRemove()){
+//                memSize = hand.getMemory();
+//                next = hand.cacheNext;
+//                changed.add(hand);
+//                rc -= 1;
+//                mem -= memSize;
+//                count -= 1;
+//            }
+//            else {
+//                hand.flag = 0;
+//            }
+//
+//            hand = next;
+//            count += 1;
 
         }
 
