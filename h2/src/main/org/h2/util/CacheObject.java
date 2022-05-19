@@ -33,6 +33,7 @@ public abstract class CacheObject implements Comparable<CacheObject> {
     private boolean changed;
 
     public int flag = 1;
+    public boolean beenremoved = false;
 
     /**
      * Check if the object can be removed from the cache.

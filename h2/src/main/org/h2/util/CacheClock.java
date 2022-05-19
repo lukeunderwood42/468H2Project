@@ -153,7 +153,7 @@ public class CacheClock implements Cache {
 
     private void removeOldIfRequired(long objectMemSize) {
         // a small method, to allow inlining
-        if (memory >= maxMemory) {
+        if (memory + objectMemSize > maxMemory) {
             removeOld(objectMemSize);
         }
     }
