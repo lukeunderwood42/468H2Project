@@ -20,8 +20,8 @@ import java.util.Map;
 public class CacheLFU implements Cache {
 
 // TODO: Need to think about what we do when we multiple 1000...0000 * 2?
+   
     
-// TODO: Find places where we will need to double the flag
 
     static final String TYPE_NAME = "LFU";
 
@@ -33,7 +33,6 @@ public class CacheLFU implements Cache {
      */
     private final boolean fifo;
 
-    // TODO: Do we need to use an ArrayList??
     private final CacheObject head = new CacheHead();
     private final int mask;
     private CacheObject[] values;
@@ -60,10 +59,12 @@ public class CacheLFU implements Cache {
 
 // private CacheObject hand = head;
 
-    // TODO: Update this class (flag etc)!
-    public CacheLFU(CacheWriter writer, int maxMemoryKb, boolean fifo) {
+    // added flag and beenremoved
+    public CacheLFU(CacheWriter writer, int maxMemoryKb) {
         this.writer = writer;
-        this.fifo = fifo;
+	this.flag = 1;
+        //this.fifo = fifo;
+	this.beenremoved = false;
         this.setMaxMemory(maxMemoryKb);
         try {
             // Since setMaxMemory() ensures that maxMemory is >=0,
@@ -119,14 +120,13 @@ public class CacheLFU implements Cache {
         memory = len * (long)Constants.MEMORY_POINTER;
     }
 
-    // TODO: Here is a place to double the flag
     @Override
     public void put(CacheObject rec) {
         if (SysProperties.CHECK) {
             int pos = rec.getPos();
             CacheObject old = find(pos);
             if (old != null) {
-                old.flag = 1; //maybe
+		old.flag = 1;
                 return;
             }
         }
@@ -136,6 +136,7 @@ public class CacheLFU implements Cache {
 
         removeOldIfRequired(rec.getMemory());
         //insertAtHand(rec);
+	insertAtFront(rec);
 
     }
 
@@ -173,18 +174,33 @@ public class CacheLFU implements Cache {
         long mem = memory;
         int rc = recordCount;
         boolean flushed = false;
-        CacheObject next = null;
+        CacheObject prev = null;
         int memSize = 0;
         int count = 0;
 
 
         while(maxMemory - objectMemSize < mem){
-            if(count == rc){
+	    CacheObject smallest = smallestFlag();
+            if(smallest == prev || smallest == null){
                 writer.getTrace()
                   .info("cannot remove records, cache size too small? records:" +
                     recordCount + " memory:" + memory);
                 break;
             }
+	    if (smallest.canRemove()) {
+		memSize = smallest.getMemory();
+	        changed.add(smallest);
+	        rc -= 1;
+	        mem -= memSize;
+		smallest.beenremoved = true;
+	    }
+	    // might not be best solution
+	    else {
+	        smallest.flag = MAX_VALUE;
+	    }
+
+	    prev = smallest;
+
 //            if(hand.flag == 0 && hand.canRemove()){
 //                memSize = hand.getMemory();
 //                next = hand.cacheNext;
@@ -215,7 +231,7 @@ public class CacheLFU implements Cache {
         } finally {
             maxMemory = max;
         }
-
+//TODO get new logic from clock function
         while (!changed.isEmpty()){
             CacheObject rec = changed.get(i);
             remove(rec.getPos()); // Note: getPos() gets key not position
@@ -225,7 +241,6 @@ public class CacheLFU implements Cache {
         }
     }
 
-    // TODO: We insert differently than clock, use addToFront??
 
     // private void insertAtHand(CacheObject rec){
     //     rec.cachePrevious = hand.cachePrevious;
@@ -235,8 +250,18 @@ public class CacheLFU implements Cache {
     //     recordCount++;
     //     memory += rec.getMemory();
     // }
-
-    // TODO: Consider adding to back instead (right before head)
+    private CacheObject smallestFlag() {
+        CacheObject curr = head.next;
+	Integer flag = MAX_VALUE;
+	CahceObject minCache = null;
+	while (curr != head) {
+            if (curr.flag <= flag && curr.beenremoved == false) {
+	        flag = curr.flag;
+		minCache = curr;
+	    }
+	}
+	return minCache;
+    }
     private void addToFront(CacheObject rec) {
         if (rec == head) {
             throw DbException.getInternalError("try to move head");
@@ -247,7 +272,6 @@ public class CacheLFU implements Cache {
         head.cachePrevious = rec;
     }
 
-    // TODO: Are we even using a linked list?
     private void removeFromLinkedList(CacheObject rec) {
         if (rec == head) {
             throw DbException.getInternalError("try to remove head");
@@ -258,7 +282,6 @@ public class CacheLFU implements Cache {
         rec.cachePrevious = null;
     }
 
-    // TODO: Double check, but should be almost the same, maybe change remove helper function?
     @Override
     public boolean remove(int key) {
         int index = key & mask;
@@ -292,7 +315,6 @@ public class CacheLFU implements Cache {
         return true;
     }
 
-    // TODO: Change if not a linked list
     @Override
     public CacheObject find(int key) {
         CacheObject rec = values[key & mask];
@@ -302,12 +324,16 @@ public class CacheLFU implements Cache {
         return rec;
     }
 
-    // TODO: Update the rec.flag line, I don't think we need it.
     @Override
     public CacheObject get(int key) {
         CacheObject rec = find(key);
         if (rec != null) {
-            rec.flag = 1;
+	    temp = rec.flag * 2;
+            if (temp <= rec.flag) {
+                temp = rec.flag; // overflow case 
+            }
+	    rec.flag = temp;
+
         }
         return rec;
     }
