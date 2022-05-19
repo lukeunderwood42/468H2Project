@@ -182,6 +182,11 @@ public class CacheLFU implements Cache {
         while(maxMemory - objectMemSize < mem){
 	    CacheObject smallest = smallestFlag();
             if(smallest == prev || smallest == null){
+                
+                for (node : changed) {
+                    node.beenremoved = false;
+                }
+
                 writer.getTrace()
                   .info("cannot remove records, cache size too small? records:" +
                     recordCount + " memory:" + memory);
