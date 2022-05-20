@@ -6,7 +6,7 @@ import org.h2.util.CacheObject;
 
 import java.util.*;
 
-public class TestBuffer extends TestBase {
+public class TestClock extends TestBase {
 
   static class Obj extends CacheObject {
 
@@ -42,57 +42,7 @@ public class TestBuffer extends TestBase {
 
   @Override
   public void test() throws Exception {
-   testFIFO();
-   testLRU(3);
-   testClock();
-   testLFU();
-  }
-
-  private void testFIFO(){
-    ArrayList<Integer> expected = new ArrayList<>(Arrays.asList(3, 4, 5));
-    ArrayList<Integer> input =  new ArrayList<>(Arrays.asList(1, 2, 3, 4, 5));
-    ArrayList<Integer> actual =  new ArrayList<>();
-    Integer bufferSize = 3; // for now
-    //replace with actual fifo logic
-    FifoLogic(actual, input, bufferSize);
-    assertEquals(expected, actual);
-  }
-
-  private void testLRU(int capacity) {
-    ArrayList<Integer> expected = new ArrayList<>(Arrays.asList(1,2,3));
-    ArrayList<Integer> input = new ArrayList<>(Arrays.asList(1,2,3,5,2,6, 3,2,1));
-    ArrayList<Integer> actual = new ArrayList<>();
-
-    Deque<Integer> doublyQueue;
-    HashSet<Integer> hashSet;
-    int CACHE_SIZE;
-
-    doublyQueue = new LinkedList<>();
-    hashSet = new HashSet<>();
-    CACHE_SIZE = capacity;
-
-    for (int i = 0; i < input.size(); i++) {
-
-      int page = input.get(i);
-
-      if (!hashSet.contains(page)){
-        if(doublyQueue.size() == CACHE_SIZE){
-          int last = doublyQueue.removeLast();
-          hashSet.remove(last);
-        }
-    } else{
-        doublyQueue.remove(page);
-      }
-      doublyQueue.push(page);
-      hashSet.add(page);
-  }
-
-    actual.addAll(doublyQueue);
-
-
-    //replace with actual LRU logic
-    //LRULogic(actual, input)
-    assertEquals(expected, actual);
+    testClock();
   }
 
   private void testClock(){
@@ -131,17 +81,6 @@ public class TestBuffer extends TestBase {
 
   }
 
-  private void testLFU(){
-    ArrayList<Item> expected = new ArrayList<>(Arrays.asList(new Item(4, 1), new Item(2, 4),
-      new Item(1, 4)
-      ));
-    ArrayList<Integer> input =  new ArrayList<>(Arrays.asList(1, 2, 3, 1, 1, 2, 2, 3, 4));
-    ArrayList<Item> actual =  new ArrayList<>();
-    //replace with actual clock logic
-    LFUlogic(actual, input, 3);
-    assertEquals(expected, actual);
-  }
-
   private class Item{
     public int flag;
     public int value;
@@ -176,18 +115,6 @@ public class TestBuffer extends TestBase {
 
   }
 
-  // running thru fifo logic 
-  private static void FifoLogic(ArrayList<Integer> actual, ArrayList<Integer> input, Integer bufferSize) {
-    // loop thru the input array
-    for (Integer i : input) {
-      // exceeded buffer size so remove the first
-      if(actual.size() >= bufferSize) {
-        actual.remove(0);
-      }
-      // add the next item to the actual list
-      actual.add(i);
-    }
-  }
 
   private void clockLogic(ArrayList<Item> actual, ArrayList<Integer> input, int bufferSize){
     int clockPosition = 0;
@@ -226,27 +153,5 @@ public class TestBuffer extends TestBase {
     }
   }
 
-  private void LFUlogic(ArrayList<Item> actual, ArrayList<Integer> input, Integer bufferSize) {
-    for (Integer val : input) {
-      actual.sort(Comparator.comparing(Item::getFlag));
-      boolean inserted = false;
-      for(Item i: actual){
-        if(i.value == val){
-          i.flag *= 2;
-          inserted = true;
-        }
-      }
-      if (actual.size() < bufferSize && !inserted) {
-        actual.add(new Item(val, 1));
-
-        inserted = true;
-      }
-      if (!inserted){
-        actual.remove(0);
-        actual.add( new Item(val, 1));
-      }
-    }
-    actual.sort(Comparator.comparing(Item::getFlag));
-  }
 
 }
