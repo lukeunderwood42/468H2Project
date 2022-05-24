@@ -31,7 +31,7 @@ public class CacheLFU implements Cache {
      * Use First-In-First-Out (don't move recently used items to the front of
      * the queue).
      */
-    private final boolean fifo = false;
+    private final boolean fifo;
 
     private final CacheObject head = new CacheHead();
     private final int mask;
@@ -62,7 +62,9 @@ public class CacheLFU implements Cache {
     // added flag and beenremoved
     public CacheLFU(CacheWriter writer, int maxMemoryKb) {
         this.writer = writer;
+	this.flag = 1;
         //this.fifo = fifo;
+	this.beenremoved = false;
         this.setMaxMemory(maxMemoryKb);
         try {
             // Since setMaxMemory() ensures that maxMemory is >=0,
@@ -134,7 +136,7 @@ public class CacheLFU implements Cache {
 
         removeOldIfRequired(rec.getMemory());
         //insertAtHand(rec);
-	addToFront(rec);
+	insertAtFront(rec);
 
     }
 
@@ -181,7 +183,7 @@ public class CacheLFU implements Cache {
 	    CacheObject smallest = smallestFlag();
             if(smallest == prev || smallest == null){
                 
-                for (CacheObject node : changed) {
+                for (node : changed) {
                     node.beenremoved = false;
                 }
 
@@ -199,7 +201,7 @@ public class CacheLFU implements Cache {
 	    }
 	    // might not be best solution
 	    else {
-	        smallest.flag = Integer.MAX_VALUE;
+	        smallest.flag = MAX_VALUE;
 	    }
 
 	    prev = smallest;
@@ -235,7 +237,7 @@ public class CacheLFU implements Cache {
             maxMemory = max;
         }
 //TODO get new logic from clock function
-        for (i = 0; i < changed.size(); i++){
+        while (!changed.isEmpty()){
             CacheObject rec = changed.get(i);
             remove(rec.getPos()); // Note: getPos() gets key not position
             if (rec.cacheNext != null) {
@@ -254,9 +256,9 @@ public class CacheLFU implements Cache {
     //     memory += rec.getMemory();
     // }
     private CacheObject smallestFlag() {
-        CacheObject curr = head.cacheNext;
-	Integer flag = Integer.MAX_VALUE;
-	CacheObject minCache = null;
+        CacheObject curr = head.next;
+	Integer flag = MAX_VALUE;
+	CahceObject minCache = null;
 	while (curr != head) {
             if (curr.flag <= flag && curr.beenremoved == false) {
 	        flag = curr.flag;
@@ -331,7 +333,7 @@ public class CacheLFU implements Cache {
     public CacheObject get(int key) {
         CacheObject rec = find(key);
         if (rec != null) {
-	    int temp = rec.flag * 2;
+	    temp = rec.flag * 2;
             if (temp <= rec.flag) {
                 temp = rec.flag; // overflow case 
             }
