@@ -21,7 +21,8 @@ public class CacheLFU implements Cache {
 
 // TODO: Need to think about what we do when we multiple 1000...0000 * 2?
    
-    
+    public int hits = 0;
+    public int misses = 0;
 
     static final String TYPE_NAME = "LFU";
 
@@ -160,7 +161,7 @@ public class CacheLFU implements Cache {
 
     private void removeOldIfRequired(long objectMemSize) {
         // a small method, to allow inlining
-        if (memory >= maxMemory) {
+        if (memory + objectMemSize >= maxMemory) {
             removeOld(objectMemSize);
         }
     }
@@ -254,14 +255,17 @@ public class CacheLFU implements Cache {
     //     memory += rec.getMemory();
     // }
     private CacheObject smallestFlag() {
+        int count = 0;
         CacheObject curr = head.cacheNext;
 	Integer flag = Integer.MAX_VALUE;
 	CacheObject minCache = null;
-	while (curr != head) {
-            if (curr.flag <= flag && curr.beenremoved == false) {
+	while (count < values.length) {
+            if (curr.flag < flag && curr.beenremoved == false) {
 	        flag = curr.flag;
 		minCache = curr;
 	    }
+            count++;
+            curr = curr.cacheNext;
 	}
 	return minCache;
     }
@@ -273,6 +277,7 @@ public class CacheLFU implements Cache {
         rec.cachePrevious = head.cachePrevious;
         rec.cachePrevious.cacheNext = rec;
         head.cachePrevious = rec;
+        memory += rec.getMemory();
     }
 
     private void removeFromLinkedList(CacheObject rec) {
@@ -307,6 +312,7 @@ public class CacheLFU implements Cache {
         }
         recordCount--;
         memory -= rec.getMemory();
+        System.out.printf("%d memory after removal: %d memory removed%n", memory, rec.getMemory());
         removeFromLinkedList(rec);
         if (SysProperties.CHECK) {
             rec.cacheChained = null;
@@ -336,7 +342,10 @@ public class CacheLFU implements Cache {
                 temp = rec.flag; // overflow case 
             }
 	    rec.flag = temp;
-
+            hits += 1;
+        }
+        else{
+            misses += 1;
         }
         return rec;
     }

@@ -47,6 +47,9 @@ public class CacheLRU implements Cache {
      */
     private long memory;
 
+    public int hits = 0;
+    public int misses = 0;
+
     CacheLRU(CacheWriter writer, int maxMemoryKb, boolean fifo) {
         this.writer = writer;
         this.fifo = fifo;
@@ -305,6 +308,9 @@ public class CacheLRU implements Cache {
                 removeFromLinkedList(rec);
                 addToFront(rec);
             }
+            hits += 1;
+        } else{
+            misses += 1;
         }
         return rec;
     }

@@ -57,7 +57,7 @@ public class TestLFU extends TestBase {
 
 
     TestCache test = new TestCache();
-    CacheLFU cache = new CacheLFU(test, 15);
+    CacheLFU cache = new CacheLFU(test, 15 * 4);
     Obj object = new Obj(1);
     Obj object2 = new Obj(3);
     Obj object3 = new Obj(5);
@@ -94,7 +94,7 @@ public class TestLFU extends TestBase {
 
 
     TestCache test2 = new TestCache();
-    CacheLFU cache2 = new CacheLFU(test2, 3);
+    CacheLFU cache2 = new CacheLFU(test2, 4 * 4);
     Obj objectB = new Obj(1);
     Obj objectB2 = new Obj(3);
     Obj objectB3 = new Obj(5);
@@ -114,7 +114,7 @@ public class TestLFU extends TestBase {
 
 
     TestCache test3 = new TestCache();
-    CacheLFU cache3 = new CacheLFU(test3, 2);
+    CacheLFU cache3 = new CacheLFU(test3, 3 * 4);
     Obj objectC = new Obj(1);
     Obj objectC2 = new Obj(3);
     Obj objectC3 = new Obj(5);
@@ -136,7 +136,7 @@ public class TestLFU extends TestBase {
     assertNull(cache3.find(3));
 
     TestCache test4 = new TestCache();
-    CacheLFU cache4 = new CacheLFU(test4, 2);
+    CacheLFU cache4 = new CacheLFU(test4, 4 * 4);
     Obj objectD = new Obj(1);
     Obj objectD2 = new Obj(3);
     Obj objectD3 = new Obj(5);

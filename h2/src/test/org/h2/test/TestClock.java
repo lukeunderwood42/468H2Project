@@ -54,31 +54,30 @@ public class TestClock extends TestBase {
     assertEquals(expected, actual);
 
     TestCache test = new TestCache();
-    CacheClock cache = new CacheClock(test, 15, false);
-    Obj object = new Obj(1);
-    Obj object2 = new Obj(3);
+    CacheClock cache = new CacheClock(test, 4 * 4, false);
+    Obj object = new Obj(3);
+    Obj object2 = new Obj(4);
     Obj object3 = new Obj(5);
     Obj object4 = new Obj(2);
-    Obj object5 = new Obj(6);
-    Obj object6 = new Obj(7);
-    Obj object7 = new Obj(8);
-    Obj object8 = new Obj(9);
-    Obj object9 = new Obj(4);
-    Obj object10 = new Obj(10);
+    Obj object5 = new Obj(4);
     cache.put(object);
     cache.put(object2);
     cache.put(object3);
     cache.put(object4);
     cache.put(object5);
-//    cache.put(object6);
-//    cache.put(object7);
-//    cache.put(object8);
-//    cache.put(object9);
-//    cache.put(object10);
 
     assertEquals(object3, cache.find(5));
-    assertEquals(object2, cache.find(3));
-
+    //way to test order
+    CacheObject current = cache.head;
+    current = current.cacheNext;
+    assertEquals(cache.find(2), current);
+    assertEquals(current.flag, 1);
+    current = current.cacheNext;
+    assertEquals(cache.find(4), current);
+    assertEquals(current.flag, 1);
+    current = current.cacheNext;
+    assertEquals(cache.find(5), current);
+    assertEquals(current.flag, 0);
   }
 
   private class Item{

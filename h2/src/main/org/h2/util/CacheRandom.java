@@ -19,7 +19,7 @@ import java.util.Random;
  */
 public class CacheRandom implements Cache {
 
-    static final String TYPE_NAME = "LRU";
+    static final String TYPE_NAME = "RANDOM";
 
     private final CacheWriter writer;
 
@@ -48,6 +48,9 @@ public class CacheRandom implements Cache {
      * The current memory used in this cache, in words (4 bytes each).
      */
     private long memory;
+
+    public int hits = 0;
+    public int misses = 0;
 
     CacheRandom(CacheWriter writer, int maxMemoryKb, boolean fifo) {
         this.writer = writer;
@@ -314,6 +317,10 @@ public class CacheRandom implements Cache {
                 removeFromLinkedList(rec);
                 addToFront(rec);
             }
+            hits += 1;
+        }
+        else{
+            misses += 1;
         }
         return rec;
     }

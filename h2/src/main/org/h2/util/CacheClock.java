@@ -22,6 +22,9 @@ public class CacheClock implements Cache {
 
     private final CacheWriter writer;
 
+    public int hits = 0;
+    public int misses = 0;
+
     /**
      * Use First-In-First-Out (don't move recently used items to the front of
      * the queue).
@@ -29,7 +32,7 @@ public class CacheClock implements Cache {
     private final boolean fifo;
 
     //TODO: may need to change structure used for holding values
-    private final CacheObject head = new CacheHead();
+    public final CacheObject head = new CacheHead();
     private final int mask;
     private CacheObject[] values;
     private int recordCount;
@@ -127,8 +130,7 @@ public class CacheClock implements Cache {
         values[index] = rec;
 
         removeOldIfRequired(rec.getMemory());
-        insertAtHand(rec);
-
+        insertBehindHand(rec);
     }
 
     // check if CacheObject record is in memory, if it is not, put it in. If it is, throw an error?
@@ -164,14 +166,11 @@ public class CacheClock implements Cache {
         ArrayList<CacheObject> changed = new ArrayList<>();
         long mem = memory;
         int rc = recordCount;
-        boolean flushed = false;
-        CacheObject next = null;
         int memSize = 0;
         int count = 0;
 
 
         while(maxMemory - objectMemSize < mem){
-            //bad condition. need
             if(count == (rc + 1) * 2){
                 writer.getTrace()
                   .info("cannot remove records, cache size too small? records:" +
@@ -179,11 +178,9 @@ public class CacheClock implements Cache {
                 break;
             }
             if(hand == head){
-                next = hand.cacheNext;
             }
             else if(hand.flag == 0 && hand.canRemove()){
                 memSize = hand.getMemory();
-                next = hand.cacheNext;
                 changed.add(hand);
                 rc -= 1;
                 mem -= memSize;
@@ -193,7 +190,7 @@ public class CacheClock implements Cache {
                 hand.flag = 0;
             }
 
-            hand = next;
+            hand = hand.cacheNext;
             count += 1;
 
         }
@@ -222,13 +219,7 @@ public class CacheClock implements Cache {
     }
 
 
-    private void insertAtHand(CacheObject rec){
-//        rec.cacheNext= hand.cacheNext;
-//        rec.cacheNext.cachePrevious = rec;
-//        rec.cachePrevious = hand;
-//        hand.cacheNext = rec;
-//        recordCount++;
-//        memory += rec.getMemory();
+    private void insertBehindHand(CacheObject rec){
         if(values.length == 0){
             head.cacheNext = rec;
             head.cachePrevious = rec;
@@ -236,10 +227,10 @@ public class CacheClock implements Cache {
             rec.cachePrevious = head;
         }
         else {
-            head.cachePrevious.cacheNext = rec;
-            rec.cachePrevious = head.cachePrevious;
-            head.cachePrevious = rec;
-            rec.cacheNext = head;
+            hand.cachePrevious.cacheNext = rec;
+            rec.cachePrevious = hand.cachePrevious;
+            hand.cachePrevious = rec;
+            rec.cacheNext = hand;
         }
         recordCount ++;
         memory += rec.getMemory();
@@ -250,6 +241,9 @@ public class CacheClock implements Cache {
     private void removeFromLinkedList(CacheObject rec) {
         if (rec == head) {
             throw DbException.getInternalError("try to remove head");
+        }
+        if(hand == rec){
+            hand = hand.cacheNext;
         }
         rec.cachePrevious.cacheNext = rec.cacheNext;
         rec.cacheNext.cachePrevious = rec.cachePrevious;
@@ -279,6 +273,7 @@ public class CacheClock implements Cache {
         }
         recordCount--;
         memory -= rec.getMemory();
+        System.out.println(rec.getMemory());
         removeFromLinkedList(rec);
         if (SysProperties.CHECK) {
             rec.cacheChained = null;
@@ -305,6 +300,9 @@ public class CacheClock implements Cache {
         CacheObject rec = find(key);
         if (rec != null) {
             rec.flag = 1;
+            hits += 1;
+        } else{
+            misses += 1;
         }
         return rec;
     }
