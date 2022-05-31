@@ -50,7 +50,7 @@ public class CacheLRU implements Cache {
     public int hits = 0;
     public int misses = 0;
 
-    CacheLRU(CacheWriter writer, int maxMemoryKb, boolean fifo) {
+    public CacheLRU(CacheWriter writer, int maxMemoryKb, boolean fifo) {
         this.writer = writer;
         this.fifo = fifo;
         this.setMaxMemory(maxMemoryKb);

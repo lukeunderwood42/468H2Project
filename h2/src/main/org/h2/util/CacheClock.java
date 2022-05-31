@@ -273,7 +273,6 @@ public class CacheClock implements Cache {
         }
         recordCount--;
         memory -= rec.getMemory();
-        System.out.println(rec.getMemory());
         removeFromLinkedList(rec);
         if (SysProperties.CHECK) {
             rec.cacheChained = null;

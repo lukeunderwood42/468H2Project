@@ -312,7 +312,7 @@ public class CacheLFU implements Cache {
         }
         recordCount--;
         memory -= rec.getMemory();
-        System.out.printf("%d memory after removal: %d memory removed%n", memory, rec.getMemory());
+        //System.out.printf("%d memory after removal: %d memory removed%n", memory, rec.getMemory());
         removeFromLinkedList(rec);
         if (SysProperties.CHECK) {
             rec.cacheChained = null;
