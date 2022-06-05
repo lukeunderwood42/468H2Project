@@ -15,31 +15,32 @@ public class StatsTests {
 
     public static void main(String[] args) throws Exception {
 
-        int total = 100;
-        while (total >= 0) {
-            testAllWithInputs(500, 20, 3000);
-            total--;
+        int numberOfRuns = 500;
+        int total = numberOfRuns;
+        while (numberOfRuns >= 0) {
+            testAllWithInputs(30, 20, 3000);
+            numberOfRuns--;
         }
-        System.out.printf("Average Clock time elapsed 100 runs : %d%n", ClockData[0] / 100);
-        System.out.printf("Average Clock hits : %d%n", ClockData[1] / 100);
-        System.out.printf("Average Clock misses : %d%n", ClockData[2] / 100);
+        System.out.printf("Average Clock time elapsed 100 runs : %d%n", ClockData[0] / total);
+        System.out.printf("Average Clock hits : %d%n", ClockData[1] / total);
+        System.out.printf("Average Clock misses : %d%n", ClockData[2] / total);
 
 
-        System.out.printf("Average LFU time elapsed 100 runs : %d%n", LFUData[0] / 100);
-        System.out.printf("Average LFU hits : %d%n", LFUData[1] / 100);
-        System.out.printf("Average LFU misses : %d%n", LFUData[2] / 100);
+        System.out.printf("Average LFU time elapsed 100 runs : %d%n", LFUData[0] / total);
+        System.out.printf("Average LFU hits : %d%n", LFUData[1] / total);
+        System.out.printf("Average LFU misses : %d%n", LFUData[2] / total);
 
-        System.out.printf("Average LRU time elapsed 100 runs : %d%n", LRUData[0] / 100);
-        System.out.printf("Average LRU hits : %d%n", LRUData[1] / 100);
-        System.out.printf("Average LRU misses : %d%n", LRUData[2] / 100);
+        System.out.printf("Average LRU time elapsed 100 runs : %d%n", LRUData[0] / total);
+        System.out.printf("Average LRU hits : %d%n", LRUData[1] / total);
+        System.out.printf("Average LRU misses : %d%n", LRUData[2] / total);
 
-        System.out.printf("Average FIFO time elapsed 100 runs : %d%n", FIFOData[0] / 100);
-        System.out.printf("Average FIFO hits : %d%n", FIFOData[1] / 100);
-        System.out.printf("Average FIFO misses : %d%n", FIFOData[2] / 100);
+        System.out.printf("Average FIFO time elapsed 100 runs : %d%n", FIFOData[0] / total);
+        System.out.printf("Average FIFO hits : %d%n", FIFOData[1] / total);
+        System.out.printf("Average FIFO misses : %d%n", FIFOData[2] / total);
 
-        System.out.printf("Average Random time elapsed 100 runs : %d%n", RandomData[0] / 100);
-        System.out.printf("Average Random hits : %d%n", RandomData[1] / 100);
-        System.out.printf("Average Random misses : %d%n", RandomData[2] / 100);
+        System.out.printf("Average Random time elapsed 100 runs : %d%n", RandomData[0] / total);
+        System.out.printf("Average Random hits : %d%n", RandomData[1] / total);
+        System.out.printf("Average Random misses : %d%n", RandomData[2] / total);
 
     }
 
