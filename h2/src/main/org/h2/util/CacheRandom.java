@@ -51,11 +51,13 @@ public class CacheRandom implements Cache {
 
     public int hits = 0;
     public int misses = 0;
+    public int ourLen = 0;
 
-    CacheRandom(CacheWriter writer, int maxMemoryKb, boolean fifo) {
+    public CacheRandom(CacheWriter writer, int maxMemoryKb, boolean fifo) {
         this.writer = writer;
         this.fifo = fifo;
         this.setMaxMemory(maxMemoryKb);
+        this.ourLen = maxMemoryKb / 4;
         try {
             // Since setMaxMemory() ensures that maxMemory is >=0,
             // we don't have to worry about an underflow.
@@ -173,14 +175,15 @@ public class CacheRandom implements Cache {
                     break;
                 }
             }
-            int size = values.length;
+            int size = recordCount;
             Random random = new Random();
-            int selected = random.nextInt(size);
-            while(used.contains(selected)){
-                selected = random.nextInt(size);
+            int skips = random.nextInt(size - 1);
+            skips += 1;
+            used.add(skips);
+            CacheObject check = head;
+            for(int k = 0; k < skips; k ++){
+                check = check.cacheNext;
             }
-            used.add(selected);
-            CacheObject check = values[selected];
             //next = check.cacheNext;
             i++;
             if (i >= recordCount) {

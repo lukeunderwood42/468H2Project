@@ -7,6 +7,7 @@ import org.h2.util.CacheClock;
 import org.h2.util.CacheLFU;
 import org.h2.util.CacheObject;
 import org.h2.util.CacheLRU;
+import org.h2.util.CacheRandom;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -44,7 +45,7 @@ public class StatsTests {
   }
 
   public static void main(String[] args) throws Exception {
-    testAllWithInputs(300, 10, 3000, 45);
+    testAllWithInputs(500, 20, 3000);
   }
 
   public static void testClockLoad(Obj[] inputs, int size){
@@ -111,17 +112,34 @@ public class StatsTests {
     System.out.printf("Misses for FIFO: %d%n", cache.misses);
   }
 
-  public static void testAllWithInputs(int range,  int cacheSize, int inputSize,  int seed){
-    Obj[] inputSet = generateRandomInput(range, inputSize, seed);
+  public static void testRandomLoad(Obj[] inputs, int size){
+    TestCache test = new TestCache();
+    CacheRandom cache = new CacheRandom(test, size * 4, true);
+    long start = System.currentTimeMillis();
+    for(int i = 0; i < inputs.length; i++){
+      if(cache.get(inputs[i].getPos()) == null){
+        cache.put(inputs[i]);
+      }
+    }
+    long end = System.currentTimeMillis();
+    end += cache.misses * 10L;
+    System.out.printf("Time elapsed for Random: %d%n", end - start);
+    System.out.printf("Hits for Random: %d%n", cache.hits);
+    System.out.printf("Misses for Random: %d%n", cache.misses);
+  }
+
+  public static void testAllWithInputs(int range,  int cacheSize, int inputSize){
+    Obj[] inputSet = generateRandomInput(range, inputSize);
     testClockLoad(inputSet, cacheSize);
     testLFULoad(inputSet, cacheSize);
     testLRULoad(inputSet, cacheSize);
     testFifoLoad(inputSet, cacheSize);
+    testRandomLoad(inputSet, cacheSize);
   }
 
-  public static Obj[] generateRandomInput(int range, int size, int seed){
+  public static Obj[] generateRandomInput(int range, int size){
     Obj[] output = new Obj[size];
-    Random random = new Random(seed);
+    Random random = new Random();
     for(int i = 0; i < size; i++){
       int rand = random.nextInt(range);
       output[i] = new Obj(rand);

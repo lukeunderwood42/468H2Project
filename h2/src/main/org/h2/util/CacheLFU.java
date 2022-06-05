@@ -54,9 +54,6 @@ public class CacheLFU implements Cache {
      */
     private long memory;
 
-    /**
-     * Tracks the hand location for clock algorithm
-     */
 
 // private CacheObject hand = head;
 
@@ -96,8 +93,8 @@ public class CacheLFU implements Cache {
             cacheType = cacheType.substring("SOFT_".length());
         }
         Cache cache;
-        if (CacheClock.TYPE_NAME.equals(cacheType)) {
-            cache = new CacheClock(writer, cacheSize, false);
+        if (CacheLFU.TYPE_NAME.equals(cacheType)) {
+            cache = new CacheLFU(writer, cacheSize);
         } else if (CacheTQ.TYPE_NAME.equals(cacheType)) {
             cache = new CacheTQ(writer, cacheSize);
         } else {
@@ -235,7 +232,7 @@ public class CacheLFU implements Cache {
         } finally {
             maxMemory = max;
         }
-//TODO get new logic from clock function
+
         for (i = 0; i < changed.size(); i++){
             CacheObject rec = changed.get(i);
             remove(rec.getPos()); // Note: getPos() gets key not position

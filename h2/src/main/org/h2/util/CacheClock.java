@@ -220,19 +220,12 @@ public class CacheClock implements Cache {
 
 
     private void insertBehindHand(CacheObject rec){
-        //Might not need this if statement?
-        if(values.length == 0){
-            head.cacheNext = rec;
-            head.cachePrevious = rec;
-            rec.cacheNext = head;
-            rec.cachePrevious = head;
-        }
-        else {
+
             hand.cachePrevious.cacheNext = rec;
             rec.cachePrevious = hand.cachePrevious;
             hand.cachePrevious = rec;
             rec.cacheNext = hand;
-        }
+
         recordCount ++;
         memory += rec.getMemory();
 
