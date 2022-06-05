@@ -46,9 +46,9 @@ public class TestClock extends TestBase {
   }
 
   private void testClock(){
-    ArrayList<Item> expected = new ArrayList<>(Arrays.asList(new Item(2, 1),
-      new Item(4, 1), new Item(5, 0)));
-    ArrayList<Integer> input =  new ArrayList<>(Arrays.asList(3, 4, 5, 2, 4));
+    ArrayList<Item> expected = new ArrayList<>(Arrays.asList(new Item(2, 0),
+      new Item(7, 1), new Item(5, 0)));
+    ArrayList<Integer> input =  new ArrayList<>(Arrays.asList(3, 4, 5, 2, 7));
     ArrayList<Item> actual =  new ArrayList<>();
     clockLogic(actual, input, 3);
     assertEquals(expected, actual);
@@ -117,15 +117,19 @@ public class TestClock extends TestBase {
 
   private void clockLogic(ArrayList<Item> actual, ArrayList<Integer> input, int bufferSize){
     int clockPosition = 0;
-    boolean inserted = false;
+    boolean inserted;
     boolean alreadyIn = false;
     for(Integer i: input){
+      inserted = false;
+
+
       Item toBeAdded = new Item(i, 1);
 
       for(Item item: actual) {
         if(item.value == toBeAdded.value){
           item.flag = 1;
           alreadyIn = true;
+          break;
         }
       }
 
@@ -143,7 +147,7 @@ public class TestClock extends TestBase {
           else{
             actual.get(clockPosition).flag = 0;
             clockPosition ++;
-            if(clockPosition == 3){
+            if(clockPosition == bufferSize){
               clockPosition = 0;
             }
           }

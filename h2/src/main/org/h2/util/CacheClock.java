@@ -213,13 +213,14 @@ public class CacheClock implements Cache {
             CacheObject rec = changed.get(i);
             remove(rec.getPos()); // Note: getPos() gets key not position
             if (rec.cacheNext != null) {
-                throw DbException.getInternalError();
+                throw DbException.getInternalError("Dangling pointers");
             }
         }
     }
 
 
     private void insertBehindHand(CacheObject rec){
+        //Might not need this if statement?
         if(values.length == 0){
             head.cacheNext = rec;
             head.cachePrevious = rec;
@@ -240,7 +241,7 @@ public class CacheClock implements Cache {
 
     private void removeFromLinkedList(CacheObject rec) {
         if (rec == head) {
-            throw DbException.getInternalError("try to remove head");
+            throw DbException.getInternalError("tried to remove head");
         }
         if(hand == rec){
             hand = hand.cacheNext;
