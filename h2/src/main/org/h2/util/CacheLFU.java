@@ -274,7 +274,10 @@ public class CacheLFU implements Cache {
         rec.cachePrevious = head.cachePrevious;
         rec.cachePrevious.cacheNext = rec;
         head.cachePrevious = rec;
+        recordCount ++;
         memory += rec.getMemory();
+
+
     }
 
     private void removeFromLinkedList(CacheObject rec) {
