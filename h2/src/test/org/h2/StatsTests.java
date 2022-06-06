@@ -17,8 +17,8 @@ public class StatsTests {
 
         int numberOfRuns = 10;
         int total = numberOfRuns;
-        while (numberOfRuns >= 0) {
-            testAllWithInputs(500, 200, 10000);
+        while (numberOfRuns > 0) {
+            testAllWithInputs(50, 40, 10000);
             numberOfRuns--;
         }
         System.out.printf("Average Clock time elapsed " +  total +  " runs : %d%n", ClockData[0] / total);
