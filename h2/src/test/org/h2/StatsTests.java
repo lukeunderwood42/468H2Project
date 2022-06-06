@@ -20,7 +20,7 @@ public class StatsTests {
         while (numberOfRuns > 0) {
 
 
-            testAllWithInputs(10, 6, 10000); // test with 2 4 6 8
+            testAllWithInputs(500, 50, 10000); // test with 2 4 6 8
             numberOfRuns--;
 
 
@@ -153,8 +153,8 @@ public class StatsTests {
     }
 
     public static void testAllWithInputs(int range, int cacheSize, int inputSize) {
-        // Obj[] inputSet = generateRandomInput(range, inputSize);
-        Obj[] inputSet = generateSkewedInput(inputSize);
+         Obj[] inputSet = generateRandomInput(range, inputSize);
+//        Obj[] inputSet = generateSkewedInput(inputSize);
 
         testClockLoad(inputSet, cacheSize);
         testLFULoad(inputSet, cacheSize);
@@ -179,34 +179,34 @@ public class StatsTests {
       for (int i = 0; i < size; i++) {
           int rand = random.nextInt(100);
 
-          if(rand <= 40) {
+          if(rand <= 40) {                  // 40%
             output[i] = new Obj(1);
           }
-          else if(rand < 60 ) {
+          else if(rand < 60 ) {             // 20%
             output[i] = new Obj(2);
           }
-          else if(rand < 75 ) {
+          else if(rand < 75 ) {             // 15%
             output[i] = new Obj(3);
           }
-          else if(rand < 84 ) {
+          else if(rand < 84 ) {             // 9%
             output[i] = new Obj(4);
           }
-          else if(rand < 90 ) {
+          else if(rand < 90 ) {             // 6%
             output[i] = new Obj(5);
           }
-          else if(rand < 93 ) {
+          else if(rand < 93 ) {             // 3%
             output[i] = new Obj(6);
           }
-          else if(rand < 95 ) {
+          else if(rand < 95 ) {             // 2%
             output[i] = new Obj(7);
           }
-          else if(rand < 97 ) {
+          else if(rand < 97 ) {             // 2%
             output[i] = new Obj(8);
           }
-          else if(rand < 98 ) {
+          else if(rand < 98 ) {             // 1%
             output[i] = new Obj(9);
           }
-          else {
+          else {                            // 1%
             output[i] = new Obj(10);
           }
       }

@@ -158,14 +158,16 @@ public class CacheLRU implements Cache {
         boolean flushed = false;
         CacheObject next = head.cacheNext;
         while (true) {
-            if (rc <= Constants.CACHE_MIN_RECORDS) {
-                break;
-            }
+//            if (rc <= Constants.CACHE_MIN_RECORDS) {
+//                break;
+//            }
             if (changed.isEmpty()) {
                 if (mem <= maxMemory) {
                     break;
                 }
-            } else {
+            }
+
+            else {
                 if (mem * 4 <= maxMemory * 3) {
                     break;
                 }
