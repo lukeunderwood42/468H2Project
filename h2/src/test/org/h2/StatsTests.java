@@ -18,29 +18,35 @@ public class StatsTests {
         int numberOfRuns = 10;
         int total = numberOfRuns;
         while (numberOfRuns > 0) {
-            testAllWithInputs(500, 450, 10000);
+
+
+            testAllWithInputs(10, 2, 10000); // test with 2 4 6 8 
+            
             numberOfRuns--;
+
+
         }
-        System.out.printf("Average Clock time elapsed " +  total +  " runs : %d%n", ClockData[0] / total);
-        System.out.printf("Average Clock hits : %d%n", ClockData[1] / total);
-        System.out.printf("Average Clock misses : %d%n", ClockData[2] / total);
+
+        // System.out.printf("Average Clock time elapsed " +  total +  " runs : %d%n", ClockData[0] / total);
+        // System.out.printf("Average Clock hits : %d%n", ClockData[1] / total);
+        // System.out.printf("Average Clock misses : %d%n", ClockData[2] / total);
 
 
-        System.out.printf("Average LFU time elapsed "  +  total + " runs : %d%n", LFUData[0] / total);
-        System.out.printf("Average LFU hits : %d%n", LFUData[1] / total);
-        System.out.printf("Average LFU misses : %d%n", LFUData[2] / total);
+        // System.out.printf("Average LFU time elapsed "  +  total + " runs : %d%n", LFUData[0] / total);
+        // System.out.printf("Average LFU hits : %d%n", LFUData[1] / total);
+        // System.out.printf("Average LFU misses : %d%n", LFUData[2] / total);
 
-        System.out.printf("Average LRU time elapsed "   +  total +  " runs : %d%n", LRUData[0] / total);
-        System.out.printf("Average LRU hits : %d%n", LRUData[1] / total);
-        System.out.printf("Average LRU misses : %d%n", LRUData[2] / total);
+        // System.out.printf("Average LRU time elapsed "   +  total +  " runs : %d%n", LRUData[0] / total);
+        // System.out.printf("Average LRU hits : %d%n", LRUData[1] / total);
+        // System.out.printf("Average LRU misses : %d%n", LRUData[2] / total);
 
-        System.out.printf("Average FIFO time elapsed "  +  total + " runs : %d%n", FIFOData[0] / total);
-        System.out.printf("Average FIFO hits : %d%n", FIFOData[1] / total);
-        System.out.printf("Average FIFO misses : %d%n", FIFOData[2] / total);
+        // System.out.printf("Average FIFO time elapsed "  +  total + " runs : %d%n", FIFOData[0] / total);
+        // System.out.printf("Average FIFO hits : %d%n", FIFOData[1] / total);
+        // System.out.printf("Average FIFO misses : %d%n", FIFOData[2] / total);
 
-        System.out.printf("Average Random time elapsed "  +  total + " runs : %d%n", RandomData[0] / total);
-        System.out.printf("Average Random hits : %d%n", RandomData[1] / total);
-        System.out.printf("Average Random misses : %d%n", RandomData[2] / total);
+        // System.out.printf("Average Random time elapsed "  +  total + " runs : %d%n", RandomData[0] / total);
+        // System.out.printf("Average Random hits : %d%n", RandomData[1] / total);
+        // System.out.printf("Average Random misses : %d%n", RandomData[2] / total);
 
     }
 
@@ -148,7 +154,9 @@ public class StatsTests {
     }
 
     public static void testAllWithInputs(int range, int cacheSize, int inputSize) {
-        Obj[] inputSet = generateRandomInput(range, inputSize);
+        // Obj[] inputSet = generateRandomInput(range, inputSize);
+        Obj[] inputSet = generateSkewedInput(inputSize);
+
         testClockLoad(inputSet, cacheSize);
         testLFULoad(inputSet, cacheSize);
         testLRULoad(inputSet, cacheSize);
@@ -165,6 +173,46 @@ public class StatsTests {
         }
         return output;
     }
+
+    public static Obj[] generateSkewedInput(int size) {
+      Obj[] output = new Obj[size];
+      Random random = new Random();
+      for (int i = 0; i < size; i++) {
+          int rand = random.nextInt(range);
+
+          if(rand <= 40) {
+            output[i] = new Obj(1);
+          }
+          else if(rand < 60 ) {
+            output[i] = new Obj(2);
+          }
+          else if(rand < 75 ) {
+            output[i] = new Obj(3);
+          }
+          else if(rand < 84 ) {
+            output[i] = new Obj(4);
+          }
+          else if(rand < 90 ) {
+            output[i] = new Obj(5);
+          }
+          else if(rand < 93 ) {
+            output[i] = new Obj(6);
+          }
+          else if(rand < 95 ) {
+            output[i] = new Obj(7);
+          }
+          else if(rand < 97 ) {
+            output[i] = new Obj(8);
+          }
+          else if(rand < 98 ) {
+            output[i] = new Obj(9);
+          }
+          else {
+            output[i] = new Obj(10);
+          }
+      }
+      return output;
+  }
 
     static class Obj extends CacheObject {
 
