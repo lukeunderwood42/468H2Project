@@ -20,7 +20,7 @@ public class StatsTests {
         while (numberOfRuns > 0) {
 
 
-            testAllWithInputs(500, 50, 10000); // test with 2 4 6 8
+            testAllWithInputs(20, 24, 10000); // test with 2 4 6 8
             numberOfRuns--;
 
 
@@ -153,8 +153,9 @@ public class StatsTests {
     }
 
     public static void testAllWithInputs(int range, int cacheSize, int inputSize) {
-         Obj[] inputSet = generateRandomInput(range, inputSize);
+//         Obj[] inputSet = generateRandomInput(range, inputSize);
 //        Obj[] inputSet = generateSkewedInput(inputSize);
+        Obj[] inputSet = generateLessSkewedInput(inputSize);
 
         testClockLoad(inputSet, cacheSize);
         testLFULoad(inputSet, cacheSize);
@@ -212,6 +213,21 @@ public class StatsTests {
       }
       return output;
   }
+    public static Obj[] generateLessSkewedInput(int size) {
+        Obj[] output = new Obj[size];
+        Random random = new Random();
+        for (int i = 0; i < size; i++) {
+            int rand = random.nextInt(100);
+
+            if(rand <= 67) {                  // 66% (0-9)
+                output[i] = new Obj(rand % 10);
+            }
+            else {                            // 34% (10-19)
+                output[i] = new Obj((rand % 10) + 10);
+            }
+        }
+        return output;
+    }
 
     static class Obj extends CacheObject {
 
