@@ -20,7 +20,7 @@ public class StatsTests {
         while (numberOfRuns > 0) {
 
 
-            testAllWithInputs(20, 24, 10000); // test with 2 4 6 8
+            testAllWithInputs(20, 20, 10000); // test with 2 4 6 8
             numberOfRuns--;
 
 
@@ -155,7 +155,8 @@ public class StatsTests {
     public static void testAllWithInputs(int range, int cacheSize, int inputSize) {
 //         Obj[] inputSet = generateRandomInput(range, inputSize);
 //        Obj[] inputSet = generateSkewedInput(inputSize);
-        Obj[] inputSet = generateLessSkewedInput(inputSize);
+//        Obj[] inputSet = generateLessSkewedInput(inputSize);
+        Obj[] inputSet = generateIntervalInput(inputSize);
 
         testClockLoad(inputSet, cacheSize);
         testLFULoad(inputSet, cacheSize);
@@ -226,6 +227,46 @@ public class StatsTests {
                 output[i] = new Obj((rand % 10) + 10);
             }
         }
+        return output;
+    }
+
+
+
+    public static Obj[] generateIntervalInput(int size) {
+        Obj[] output = new Obj[size];
+        Random random = new Random();
+
+        // skewed input
+        for (int i = 0; i < size / 3; i++) {
+            int rand = random.nextInt(100);
+
+            if(rand <= 80) {                                // 80% (0-9)
+                output[i] = new Obj(rand % 10);
+            }
+            else {                                          // 20% (10-19)
+                output[i] = new Obj((rand % 10) + 10);
+            }
+
+        }
+
+        // opposite skewed input
+        for (int i = size / 3; i < (2 * size / 3); i++) {
+            int rand = random.nextInt(100);
+
+            if(rand <= 20) {                                // 20% (0-9)
+                output[i] = new Obj(rand % 10);
+            }
+            else {                                          // 80% (10-19)
+                output[i] = new Obj((rand % 10) + 10);
+            }
+        }
+
+        // even input
+        for (int i = (2 * size / 3); i < size; i++) {
+            int rand = random.nextInt(100);
+            output[i] = new Obj(rand % 20);
+        }
+
         return output;
     }
 
